@@ -10,6 +10,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*", methods: ["GET", "POST"] } });
 
+// Временная база данных в памяти сервера
 const users = [];
 const chats = [];
 const chatMembers = [];
@@ -35,6 +36,7 @@ function generateUID() {
     return users.find(u => u.id === id) ? generateUID() : id;
 }
 
+// API Эндпоинты
 app.post('/api/auth/register', async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) return res.status(400).json({ error: 'Заполните все поля' });
@@ -66,6 +68,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Socket.io Логика мессенджера
 io.on('connection', (socket) => {
     socket.on('user:join', (userId) => {
         socket.userId = userId;
@@ -74,6 +77,33 @@ io.on('connection', (socket) => {
         const userChats = chats.filter(c => myChatIds.includes(c.id));
         userChats.forEach(chat => socket.join(chat.id));
         socket.emit('user:chats', userChats);
+    });
+
+    // Редактирование данных профиля
+    socket.on('profile:update', async ({ userId, newUsername, newPassword }) => {
+        const user = users.find(u => u.id === userId);
+        if (!user) return;
+
+        if (newUsername) {
+            const exists = users.find(u => u.username.toLowerCase() === newUsername.toLowerCase() && u.id !== userId);
+            if (exists) return socket.emit('profile:updated', { success: false, error: 'Никнейм уже занят' });
+            user.username = newUsername;
+        }
+        if (newPassword) {
+            user.password = await bcrypt.hash(newPassword, 10);
+        }
+        
+        socket.emit('profile:updated', { success: true, user: { id: user.id, username: user.username, created_at: user.created_at } });
+    });
+
+    // Полное удаление аккаунта
+    socket.on('profile:delete', (userId) => {
+        const index = users.findIndex(u => u.id === userId);
+        if (index !== -1) users.splice(index, 1);
+        for (let i = chatMembers.length - 1; i >= 0; i--) {
+            if (chatMembers[i].user_id === userId) chatMembers.splice(i, 1);
+        }
+        socket.emit('profile:deleted', { success: true });
     });
 
     socket.on('chat:create_private', ({ userId, targetId }) => {
