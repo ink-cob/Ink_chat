@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ink chat</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cloudflare.com">
+</head>
+<body>
+    <div id="auth-screen" class="screen active">
+        <div class="auth-card">
+            <div class="auth-logo"><i class="fa-paper-plane"></i></div>
+            <h2>Войти в Ink chat</h2>
+            <div class="alert-error" id="auth-error"></div>
+            <input type="text" id="auth-username" placeholder="Никнейм">
+            <input type="password" id="auth-password" placeholder="Пароль">
+            <button id="btn-login">ВОЙТИ</button>
+            <button id="btn-register" class="btn-secondary">СОЗДАТЬ АККАУНТ</button>
+        </div>
+    </div>
+
+    <div id="app-screen" class="screen">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <button id="btn-menu"><i class="fa-bars"></i></button>
+                <div class="search-bar">
+                    <i class="fa-search"></i>
+                    <input type="text" id="search-friend-id" placeholder="Поиск по ID или имя группы...">
+                </div>
+                <button id="btn-action-add"><i class="fa-user-plus"></i></button>
+            </div>
+            <div class="chats-list" id="chats-container"></div>
+        </aside>
+
+        <main class="chat-window">
+            <div id="chat-stub" class="chat-stub active"><p>Выберите, кому хотели бы написать</p></div>
+            <div id="chat-active" class="chat-active">
+                <header class="chat-header">
+                    <div class="chat-info">
+                        <div class="avatar" id="active-chat-avatar">?</div>
+                        <div>
+                            <h3 id="active-chat-name">Имя чата</h3>
+                            <span class="status">онлайн</span>
+                        </div>
+                    </div>
+                </header>
+                <div class="chat-messages" id="messages-container"></div>
+                <footer class="chat-input-panel">
+                    <label class="btn-file">
+                        <i class="fa-paperclip"></i>
+                        <input type="file" id="file-input" style="display:none;">
+                    </label>
+                    <div class="input-wrapper"><input type="text" id="message-text-input" placeholder="Напишите сообщение..."></div>
+                    <button id="btn-send-message"><i class="fa-paper-plane"></i></button>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <div id="modal-settings" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Настройки профиля</h3>
+                <button class="modal-close" id="btn-close-settings">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-info-block">
+                    <p><strong>Ваш ID:</strong> <span id="prof-id">-</span></p>
+                    <p><strong>Создан:</strong> <span id="prof-date">-</span></p>
+                </div>
+                <input type="text" id="settings-username" placeholder="Новый никнейм">
+                <input type="password" id="settings-password" placeholder="Новый пароль">
+                <button id="btn-save-profile">Сохранить изменения</button>
+                <hr>
+                <button id="btn-delete-account" class="btn-danger">Удалить аккаунт навсегда</button>
+            </div>
+        </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
