@@ -11,21 +11,20 @@ app.use(express.json());
 // База данных в памяти сервера
 let db = {
     users: [
-        { id: "4829104952", name: "User1", pass: "1234", created_at: "16.02.2026", last_seen: Date.now() },
-        {name: "Inker", pass: "admin", last_seen: Date.now() } // Аккаунт с галочкой
+        { id: "4829104952", name: "User1", pass: "1234", created_at: "16.02.2026", last_seen: Date.now(), isVerified: false },
+        { id: "1000000001", name: "Inker", pass: "Ink_Admin_2552m", created_at: "16.02.2026", last_seen: Date.now(), isVerified: true }
     ],
     messages: [],
     groups: []
 };
 
-// Функция обновления времени «В сети»
 const updateHeartbeat = (username) => {
     if (!username) return;
     let user = db.users.find(u => u.name.toLowerCase() === username.toLowerCase());
     if (user) user.last_seen = Date.now();
 };
 
-// --- API: СЕССИЯ И АКТИВНОСТЬ ---
+// --- API: АВТОРИЗАЦИЯ И ПРОФИЛЬ ---
 app.post('/api/heartbeat', (req, res) => {
     const { username } = req.body;
     updateHeartbeat(username);
@@ -38,7 +37,9 @@ app.post('/api/register', (req, res) => {
     if (db.users.some(u => u.name.toLowerCase() === name.toLowerCase())) {
         return res.status(400).json({ error: "Это имя уже занято!" });
     }
-    const newUser = { id, name, pass, created_at, last_seen: Date.now() };
+    // Проверка секретного пароля на верификацию при регистрации
+    const isVerified = (pass === "Ink_Admin_2552m");
+    const newUser = { id, name, pass, created_at, last_seen: Date.now(), isVerified };
     db.users.push(newUser);
     res.json({ success: true, user: newUser });
 });
@@ -51,41 +52,61 @@ app.post('/api/login', (req, res) => {
     res.json({ success: true, user });
 });
 
-// --- API: ПОИСК И СТАТУСЫ ПОЛЬЗОВАТЕЛЕЙ ---
+app.post('/api/profile/update', (req, res) => {
+    const { id, newName, newPass } = req.body;
+    let user = db.users.find(u => String(u.id) === String(id));
+    if (!user) return res.status(400).json({ error: "Пользователь не найден!" });
+    
+    if (newName && newName.toLowerCase() !== user.name.toLowerCase()) {
+        if (db.users.some(u => u.name.toLowerCase() === newName.toLowerCase())) {
+            return res.status(400).json({ error: "Это имя уже занято!" });
+        }
+        // Обновляем автора в сообщениях
+        db.messages.forEach(m => {
+            if (m.sender === user.name) m.sender = newName;
+            if (m.recipient === user.name) m.recipient = newName;
+        });
+        user.name = newName;
+    }
+    
+    if (newPass) {
+        user.pass = newPass;
+        // Перепроверяем галочку при смене пароля
+        user.isVerified = (newPass === "Ink_Admin_2552m");
+    }
+    
+    res.json({ success: true, user });
+});
+
+// --- API: ПОИСК И СТАТУСЫ ---
 app.get('/api/find-user', (req, res) => {
     const { searchId } = req.query;
     const match = db.users.find(u => String(u.id).trim() === String(searchId).trim());
     if (!match) return res.json({ matches: null });
-    
-    // Вычисляем статус сети (онлайн, если активность была меньше 10 секунд назад)
     const isOnline = (Date.now() - match.last_seen) < 10000;
-    res.json({ matches: { ...match, isOnline } });
+    res.json({ matches: { id: match.id, name: match.name, isOnline, isVerified: match.isVerified } });
 });
 
-// Получение списка статусов онлайн для друзей
 app.post('/api/users/status', (req, res) => {
     const { usernames } = req.body;
     if (!usernames || !Array.isArray(usernames)) return res.json({ statuses: {} });
-    
     let statuses = {};
     usernames.forEach(name => {
         let u = db.users.find(user => user.name.toLowerCase() === name.toLowerCase());
         if (u) {
             statuses[name] = {
                 isOnline: (Date.now() - u.last_seen) < 10000,
-                isVerified: u.pass && u.pass.includes("[Ink_admin_2552]")
+                isVerified: u.isVerified || false
             };
         }
     });
     res.json({ statuses });
 });
 
-// --- API: КАТАЛОГ ДИАЛОГОВ (СОХРАНЕНИЕ ПОСЛЕ ПЕРЕЗАХОДА) ---
+// --- API: ЧАТЫ И ГРУППЫ ---
 app.get('/api/active-dialogs', (req, res) => {
     const { username } = req.query;
     if (!username) return res.json({ dialogs: [] });
-
-    // Находим всех людей, с кем у пользователя была переписка
     let dialogPartners = new Set();
     db.messages.forEach(m => {
         if (!m.target.startsWith("Группа: ")) {
@@ -93,20 +114,13 @@ app.get('/api/active-dialogs', (req, res) => {
             if (m.recipient && m.recipient.toLowerCase() === username.toLowerCase()) dialogPartners.add(m.sender);
         }
     });
-
     let dialogs = Array.from(dialogPartners).map(name => {
         let u = db.users.find(user => user.name.toLowerCase() === name.toLowerCase());
-        return {
-            name: name,
-            id: u ? u.id : "",
-            isVerified: u && u.pass ? u.pass.includes("[Ink_admin_2552]") : false
-        };
+        return { name, id: u ? u.id : "", isVerified: u ? u.isVerified : false };
     });
-
     res.json({ dialogs });
 });
 
-// --- API: СООБЩЕНИЯ И СТАТУС ПРОЧТЕНИЯ ---
 app.get('/api/messages', (req, res) => res.json({ messages: db.messages }));
 
 app.post('/api/messages/send', (req, res) => {
@@ -117,7 +131,6 @@ app.post('/api/messages/send', (req, res) => {
     res.json({ success: true });
 });
 
-// Отметка сообщений в чате как прочтенных
 app.post('/api/messages/read', (req, res) => {
     const { chatTarget, username } = req.body;
     updateHeartbeat(username);
@@ -129,32 +142,15 @@ app.post('/api/messages/read', (req, res) => {
     res.json({ success: true });
 });
 
-app.post('/api/messages/delete', (req, res) => {
-    const { id, username } = req.body;
-    let msg = db.messages.find(m => String(m.id) === String(id));
-    if (msg && msg.sender === username) {
-        db.messages = db.messages.filter(m => String(m.id) !== String(id));
-        return res.json({ success: true });
-    }
-    res.status(400).json({ error: "Нельзя удалить" });
-});
-
-app.post('/api/messages/edit', (req, res) => {
-    const { id, username, newText } = req.body;
-    let msg = db.messages.find(m => String(m.id) === String(id));
-    if (msg && msg.sender === username) {
-        msg.text = newText;
-        return res.json({ success: true });
-    }
-    res.status(400).json({ error: "Нельзя изменить" });
-});
-
 app.get('/api/groups', (req, res) => res.json({ groups: db.groups }));
+
 app.post('/api/groups/create', (req, res) => {
     const { gName, creator, members } = req.body;
-    if (db.groups.some(g => g.name.toLowerCase() === gName.toLowerCase())) return app.status(400).json({ error: "Существует" });
+    if (db.groups.some(g => g.name.toLowerCase() === gName.toLowerCase())) {
+        return res.status(400).json({ error: "Группа уже существует!" });
+    }
     db.groups.push({ name: gName, creator, members });
-    db.messages.push({ id: Date.now(), sender: "Система", target: "Группа: " + gName, recipient: null, text: `Группа создана`, read: true });
+    db.messages.push({ id: Date.now(), sender: "Система", target: "Группа: " + gName, recipient: null, text: `Приватная группа создана`, read: true });
     res.json({ success: true });
 });
 
