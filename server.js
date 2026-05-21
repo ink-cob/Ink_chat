@@ -153,20 +153,16 @@ app.post('/api/groups/create', (req, res) => {
     db.messages.push({ id: Date.now(), sender: "Система", target: "Группа: " + gName, recipient: null, text: `Приватная группа создана`, read: true });
     res.json({ success: true });
 });
-const path = require('path'); // Вставьте эту строку в самый верх файла server.js
+const path = require('path');
 
-// ... весь остальной ваш код API ...
-
-// --- ИСПРАВЛЕННЫЙ БЛОК РАЗДАЧИ ФРОНТЕНДА ---
-// Явно указываем Express раздавать статику из текущей директории
+// Разрешаем отдачу статических файлов
 app.use(express.static(path.join(__dirname)));
 
-// Жестко отдаем index.html при любом переходе на корневой URL
+// Гарантированная отдача index.html с правильным MIME-типом
 app.get('*', (req, res) => {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Строка запуска сервера (должна быть ниже этого блока)
+});)
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Сервер запущен`));
 
