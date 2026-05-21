@@ -154,15 +154,28 @@ app.post('/api/groups/create', (req, res) => {
     res.json({ success: true });
 });
 const path = require('path');
+const fs = require('fs'); // Модуль для чтения файлов с диска
 
-// Разрешаем отдачу статических файлов
+// Разрешаем раздачу статических ресурсов из корня
 app.use(express.static(path.join(__dirname)));
 
-// Гарантированная отдача index.html с правильным MIME-типом
+// Принудительная и гарантированная отдача фронтенда как HTML
 app.get('*', (req, res) => {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.sendFile(path.join(__dirname, 'index.html'));
-});)
+    try {
+        // Читаем файл физически
+        const htmlPath = path.join(__dirname, 'index.html');
+        const htmlContent = fs.readFileSync(htmlPath, 'utf8');
+        
+        // Насильно заставляем браузер понять, что это полноценный сайт
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.status(200).send(htmlContent);
+    } catch (err) {
+        console.error("Критическая ошибка чтения файла index.html:", err);
+        res.status(500).send("Ошибка сервера: не удалось загрузить интерфейс мессенджера.");
+    }
+});
+
+// Запуск (строго в самом низу файла)
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Сервер запущен`));
+server.listen(PORT, () => console.log(`Сервер успешно запущен на порту ${PORT}`));
 
