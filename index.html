@@ -523,7 +523,7 @@
         function uiSyncUserLabel() {
             let currentUser = getCurrentUser();
             if(currentUser) {
-                const badge = String(currentUser.id) === "6804981824" ? " ☑️" : "";
+                const badge = currentUser.pass && currentUser.pass.includes("[verify]") ? " ☑️" : "";
                 document.getElementById('current-user-label').innerHTML = escapeHTML(currentUser.name) + badge;
             }
         }
