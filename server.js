@@ -73,7 +73,7 @@ app.post('/api/users/status', (req, res) => {
         if (u) {
             statuses[name] = {
                 isOnline: (Date.now() - u.last_seen) < 10000,
-                isVerified: String(u.id).trim() === "6804981824"
+                isVerified: u.pass && u.pass.includes("[verify]")
             };
         }
     });
@@ -99,7 +99,7 @@ app.get('/api/active-dialogs', (req, res) => {
         return {
             name: name,
             id: u ? u.id : "",
-            isVerified: u ? String(u.id).trim() === "6804981824" : false
+            isVerified: u && u.pass ? u.pass.includes("[verify]") : false
         };
     });
 
