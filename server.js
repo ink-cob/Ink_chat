@@ -153,8 +153,6 @@ app.post('/api/groups/create', (req, res) => {
     db.messages.push({ id: Date.now(), sender: "Система", target: "Группа: " + gName, recipient: null, text: `Приватная группа создана`, read: true });
     res.json({ success: true });
 });
-
-const PORT = process.env.PORT || 3000;
 // Указываем серверу раздавать статические файлы (ваш index.html) из текущей папки
 app.use(express.static(__dirname));
 
@@ -162,5 +160,7 @@ app.use(express.static(__dirname));
 app.get('*', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
+
+const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, () => console.log(`Сервер запущен`));
