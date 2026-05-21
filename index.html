@@ -441,7 +441,7 @@
                 document.getElementById('search-friend-name').value = '';
                 
                 // Рендерим галочку в уведомлении
-                const badge = String(targetUser.id) === "6804981824" ? " ☑️" : "";
+                const badge = targetUser.pass && targetUser.pass.includes("[verify]") ? " ☑️" : "";
                 showPushNotification(`Контакт "${targetUser.name}${badge}" добавлен!`);
                 uiUpdateChatSelection();
             } catch (err) { alert("Ошибка поиска"); }
