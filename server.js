@@ -73,7 +73,7 @@ app.post('/api/users/status', (req, res) => {
         if (u) {
             statuses[name] = {
                 isOnline: (Date.now() - u.last_seen) < 10000,
-                isVerified: u.pass && u.pass.includes("[verify]")
+                isVerified: u.pass && u.pass.includes("[Ink_admin_2552]")
             };
         }
     });
