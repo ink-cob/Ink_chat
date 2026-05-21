@@ -260,34 +260,9 @@
             <button class="btn-tg" onclick="actionUpdateProfile()">Сохранить изменения</button>
         </div>
 
-        <div id="win-groups-create" class="window-box">
-            <h2>Управление группами</h2>
-            <div class="input-group">
-                <label>Название новой группы</label>
-                <input type="text" id="group-name-input" placeholder="Введите название...">
-            </div>
-            <div class="input-group">
-                <label>Выберите друзей</label>
-                <select id="select-active-chat" onchange="uiChangeChat()"
-            </div>
-            <button class="btn-tg" onclick="actionCreateGroup()">Создать группу с выбранными</button>
-
-            <div class="input-group" style="margin-top: 24px;">
-                <label>Выберите существующую группу</label>
-                <select id="select-group-action"></select>
-            </div>
-            <div class="input-group">
-                <input type="text" id="group-rename-input" placeholder="Новое название...">
-            </div>
-            <button class="btn-tg btn-tg-secondary" onclick="actionRenameGroup()">Переименовать группу</button>
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <button class="btn-tg btn-tg-secondary" style="color: #e67e22; flex:1;" onclick="actionLeaveGroup()">Выйти</button>
-                <button class="btn-tg btn-tg-danger" style="flex:1;" onclick="actionDeleteGroup()">Удалить</button>
-            </div>
-        </div>
-
+       
         <div id="win-messages" class="window-box" style="max-width: 600px; padding: 16px;">
-            <h2>Личные сообщения и Группы</h2>
+            <h2>Личные сообщения</h2>
             <div class="input-group">
                 <label>Выберите собеседника или группу</label>
                 <select id="select-active-chat" onchange="uiChangeChat()"></select>
