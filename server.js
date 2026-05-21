@@ -12,7 +12,7 @@ app.use(express.json());
 let db = {
     users: [
         { id: "4829104952", name: "User1", pass: "1234", created_at: "16.02.2026", last_seen: Date.now() },
-        {name: "Inker", pass: "admin", created_at: "21.05.2026", last_seen: Date.now() } // Аккаунт с галочкой
+        {name: "Inker", pass: "admin", last_seen: Date.now() } // Аккаунт с галочкой
     ],
     messages: [],
     groups: []
