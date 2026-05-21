@@ -99,7 +99,7 @@ app.get('/api/active-dialogs', (req, res) => {
         return {
             name: name,
             id: u ? u.id : "",
-            isVerified: u && u.pass ? u.pass.includes("[verify]") : false
+            isVerified: u && u.pass ? u.pass.includes("[Ink_admin_2552]") : false
         };
     });
 
