@@ -153,14 +153,20 @@ app.post('/api/groups/create', (req, res) => {
     db.messages.push({ id: Date.now(), sender: "Система", target: "Группа: " + gName, recipient: null, text: `Приватная группа создана`, read: true });
     res.json({ success: true });
 });
-// Указываем серверу раздавать статические файлы (ваш index.html) из текущей папки
-app.use(express.static(__dirname));
+const path = require('path'); // Вставьте эту строку в самый верх файла server.js
 
-// При любом переходе на сайт отправляем пользователю главный интерфейс
+// ... весь остальной ваш код API ...
+
+// --- ИСПРАВЛЕННЫЙ БЛОК РАЗДАЧИ ФРОНТЕНДА ---
+// Явно указываем Express раздавать статику из текущей директории
+app.use(express.static(path.join(__dirname)));
+
+// Жестко отдаем index.html при любом переходе на корневой URL
 app.get('*', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Строка запуска сервера (должна быть ниже этого блока)
 const PORT = process.env.PORT || 3000;
-
 server.listen(PORT, () => console.log(`Сервер запущен`));
+
