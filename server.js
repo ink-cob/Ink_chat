@@ -155,4 +155,12 @@ app.post('/api/groups/create', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+// Указываем серверу раздавать статические файлы (ваш index.html) из текущей папки
+app.use(express.static(__dirname));
+
+// При любом переходе на сайт отправляем пользователю главный интерфейс
+app.get('*', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});
+
 server.listen(PORT, () => console.log(`Сервер запущен`));
